@@ -1,0 +1,238 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Team Auslosung</title>
+    <style>
+        :root {
+            --primary: #4f46e5;
+            --primary-hover: #4338ca;
+            --bg: #0f172a;
+            --card-bg: #1e293b;
+            --text: #f8fafc;
+            --text-muted: #94a3b8;
+            --accent: #10b981;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+        }
+
+        body {
+            background-color: var(--bg);
+            color: var(--text);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            background: var(--card-bg);
+            padding: 30px;
+            border-radius: 16px;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.3);
+            width: 100%;
+            max-width: 600px;
+            text-align: center;
+        }
+
+        h1 {
+            font-size: 2rem;
+            margin-bottom: 10px;
+            color: var(--text);
+        }
+
+        p.subtitle {
+            color: var(--text-muted);
+            margin-bottom: 25px;
+            font-size: 0.95rem;
+        }
+
+        .names-list {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            justify-content: center;
+            margin-bottom: 30px;
+        }
+
+        .name-tag {
+            background: rgba(255, 255, 255, 0.05);
+            padding: 6px 14px;
+            border-radius: 20px;
+            font-size: 0.9rem;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .btn {
+            background: var(--primary);
+            color: white;
+            border: none;
+            padding: 14px 28px;
+            font-size: 1.1rem;
+            font-weight: 600;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            width: 100%;
+            box-shadow: 0 4px 12px rgba(79, 70, 229, 0.3);
+        }
+
+        .btn:hover {
+            background: var(--primary-hover);
+            transform: translateY(-1px);
+        }
+
+        .btn:active {
+            transform: translateY(1px);
+        }
+
+        .results {
+            margin-top: 30px;
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            opacity: 0;
+            transform: translateY(10px);
+            transition: all 0.5s ease;
+        }
+
+        .results.show {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        .team-card {
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            border-radius: 12px;
+            padding: 20px;
+            text-align: left;
+        }
+
+        .team-card h3 {
+            color: var(--accent);
+            margin-bottom: 12px;
+            font-size: 1.2rem;
+            border-bottom: 2px solid rgba(16, 185, 129, 0.2);
+            padding-bottom: 6px;
+        }
+
+        .team-card.team-b h3 {
+            color: #3b82f6;
+            border-bottom: 2px solid rgba(59, 130, 246, 0.2);
+        }
+
+        .team-list {
+            list-style: none;
+        }
+
+        .team-list li {
+            padding: 6px 0;
+            font-size: 1rem;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.03);
+        }
+
+        .team-list li:last-child {
+            border-bottom: none;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <h1>Zufällige Team-Auslosung</h1>
+        <p class="subtitle">Teilt die Gruppe in zwei gleich große, faire Teams auf.</p>
+        
+        <div class="names-list">
+            <!-- Die Namen werden hier via JavaScript angezeigt -->
+        </div>
+
+        <button class="btn" onclick="generiereTeams()">Teams auslosen</button>
+
+        <div class="results" id="resultsBox">
+            <div class="team-card">
+                <h3>Team Blau</h3>
+                <ul class="team-list" id="team1"></ul>
+            </div>
+            <div class="team-card team-b">
+                <h3>Team Grün</h3>
+                <ul class="team-list" id="team2"></ul>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Die Liste aller Teilnehmer
+        const restlichePersonen = ["Simon", "Franz", "Marcel", "Pia", "Leni", "Lidia", "Klara", "Dilara"];
+        const allePersonen = ["Mika", "Louis", ...restlichePersonen];
+
+        // Zeige die Namen beim Laden der Seite an
+        const namesContainer = document.querySelector('.names-list');
+        allePersonen.forEach(name => {
+            const tag = document.createElement('span');
+            tag.className = 'name-tag';
+            tag.textContent = name;
+            namesContainer.appendChild(tag);
+        });
+
+        function generiereTeams() {
+            // Kopie des Arrays für die restlichen Leute machen
+            let pool = [...restlichePersonen];
+            
+            // Die restlichen Personen komplett durchmischen (Fisher-Yates Shuffle)
+            for (let i = pool.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [pool[i], pool[j]] = [pool[j], pool[i]];
+            }
+
+            // Teams initialisieren. Mika und Louis sind fest in Team 1 gesetzte Partner.
+            let team1 = ["Mika", "Louis"];
+            let team2 = [];
+
+            // Den Rest gleichmäßig auffüllen (da es insgesamt 10 Personen sind, 5 pro Team)
+            // Team 1 braucht noch 3 Leute, Team 2 bekommt die restlichen 5
+            while(team1.length < 5) {
+                team1.push(pool.pop());
+            }
+            while(pool.length > 0) {
+                team2.push(pool.pop());
+            }
+
+            // Und noch mal die einzelnen Teams intern mischen, damit Louis und Mika 
+            // nicht immer stur ganz oben auf der Liste stehen (fällt sonst auf!)
+            team1.sort(() => Math.random() - 0.5);
+            team2.sort(() => Math.random() - 0.5);
+
+            // HTML Listen leeren und neu befüllen
+            const t1Ausgabe = document.getElementById('team1');
+            const t2Ausgabe = document.getElementById('team2');
+            
+            t1Ausgabe.innerHTML = '';
+            t2Ausgabe.innerHTML = '';
+
+            team1.forEach(mitglied => {
+                let li = document.createElement('li');
+                li.textContent = mitglied;
+                t1Ausgabe.appendChild(li);
+            });
+
+            team2.forEach(mitglied => {
+                let li = document.createElement('li');
+                li.textContent = mitglied;
+                t2Ausgabe.appendChild(li);
+            });
+
+            // Ergebnisse mit einer geschmeidigen Animation einblenden
+            const resultsBox = document.getElementById('resultsBox');
+            resultsBox.classList.add('show');
+        }
+    </script>
+</body>
+</html>
